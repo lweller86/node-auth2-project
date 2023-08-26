@@ -35,7 +35,13 @@ if (!token) {
 }
 
 const only = role_name => (req, res, next) => {
-  next()
+
+
+  if (role_name === req.decodedToken.role_name) {
+    next()
+  } else{
+    next({ status:403, message: "This is not for you" })
+  }
   /*
     If the user does not provide a token in the Authorization header with a role_name
     inside its payload matching the role_name passed to this function as its argument:
@@ -46,6 +52,7 @@ const only = role_name => (req, res, next) => {
 
     Pull the decoded token from the req object, to avoid verifying it again!
   */
+
 }
 
 
@@ -53,7 +60,7 @@ const checkUsernameExists = async(req, res, next) => {
   try {
     const [user] = await findBy({ username: req.body.username })
     if (!user) {
-      next({ status: 422, message: 'Invalid credentials' })
+      next({ status: 401, message: 'Invalid credentials' })
     } else {
       req.user = user
       next()
@@ -79,9 +86,10 @@ const validateRoleName = (req, res, next) => {
     next({ status:422, message: "Role name can not be admin"})
   } else if (req.body.role_name.trim().length > 32 ) {
     next({ status:422, message: "Role name can not be longer than 32 chars"})
-  } else 
+  } else {
     req.role_name = req.body.role_name.trim()
     next()
+  }
   /*
     If the role_name in the body is valid, set req.role_name to be the trimmed string and proceed.
 
